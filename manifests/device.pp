@@ -82,6 +82,7 @@ define luks::device(
   exec { $luks_format:
     command     => "${cryptsetup_key_cmd} luksFormat ${format_options} ${device}",
     user        => 'root',
+    provider    => 'shell',
     unless      => "${cryptsetup_cmd} isLuks ${device}",
     environment => "CRYPTKEY=${node_encrypted_key}",
     require     => Class['luks'],
@@ -91,6 +92,7 @@ define luks::device(
   exec { $luks_open:
     command     => "${cryptsetup_key_cmd} luksOpen ${device} ${mapper}",
     user        => 'root',
+    provider    => 'shell',
     onlyif      => "/usr/bin/test ! -b ${devmapper}", # Check devmapper is a block device
     environment => "CRYPTKEY=${node_encrypted_key}",
     creates     => $devmapper,
@@ -102,6 +104,7 @@ define luks::device(
   exec { $luks_keychange:
     command     => "bash -c '${cryptsetup_key_cmd} luksAddKey --master-key-file <(${master_key_cmd}) ${device} -'",
     user        => 'root',
+    provider    => 'shell',
     unless      => "${cryptsetup_key_cmd} luksDump ${device} --dump-master-key --batch-mode > /dev/null",
     environment => "CRYPTKEY=${node_encrypted_key}",
     require     => Exec[$luks_open],
